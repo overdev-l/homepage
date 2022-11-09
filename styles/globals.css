@@ -1,0 +1,13 @@
+@import url('./logo/KolkerBrush-Regular-embed.css');
+@import url('./logo/KolkerBrush-Regular.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html, body {
+  width: 100%;
+  height: 100%;
+}
+.logo {
+  font-family: 'KolkerBrush-Regular';
+  font-size: 38px;
+}
