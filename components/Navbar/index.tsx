@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { useTheme } from 'next-themes'
 const Navbar = () => {
     const { theme, setTheme } = useTheme()
-    console.log(theme)
     const changeTheme = () => {
         setTheme(theme === 'light' ? 'dark' : 'light')
     }
