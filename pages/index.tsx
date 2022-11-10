@@ -1,7 +1,12 @@
-import type { NextPage } from "next"
-const Home: NextPage = () => {
+import Article from "components/Article"
+const Home = () => {
   return (
-    <h1>hello</h1>
+    <div className="w-full h-full flex flex-col gap-y-[50px]">
+      <Article></Article>
+      <Article></Article>
+      <Article></Article>
+      <Article></Article>
+    </div>
   )
 }
 

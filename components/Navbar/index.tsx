@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useTheme } from 'next-themes'
 const Navbar = () => {
     const { theme, setTheme } = useTheme()
+    console.log(theme)
     const changeTheme = () => {
         setTheme(theme === 'light' ? 'dark' : 'light')
     }
@@ -12,7 +13,7 @@ const Navbar = () => {
         <h1 className="logo text-black dark:text-white">
             <Link href="/">Yongzhi</Link>
         </h1>
-        <Image className="cursor-pointer" src={theme !== 'light' ? "/light.svg" : "/dark.svg"} alt="theme" width="30" height="30" onClick={changeTheme} />
+        <Image className="cursor-pointer" src={theme === 'light' ? '/dark.svg' : '/light.svg'} alt="theme" width="30" height="30" onClick={changeTheme} />
     </header>
   )
 }
