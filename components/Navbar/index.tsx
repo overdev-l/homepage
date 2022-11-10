@@ -17,7 +17,7 @@ const Navbar = () => {
     },[theme])
   return (
     <header className="w-full pb-[25px] flex justify-between" >
-        <h1 className="logo text-black dark:text-white">
+        <h1 className="logo text-black dark:text-slate-300">
             <Link href="/">Yongzhi</Link>
         </h1>
         <Image className="cursor-pointer" src={thmeIcon} alt="theme" width="30" height="30" onClick={changeTheme} />

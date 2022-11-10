@@ -1,8 +1,6 @@
-import Document, {Html, Head, Main, NextScript} from 'next/document'
+import {Html, Head, Main, NextScript} from 'next/document'
 
-class MyDocument extends Document {
-
-    render() {
+function MyDocument() {
         return (
             <Html lang="zh-CN">
                 <Head>
@@ -14,7 +12,6 @@ class MyDocument extends Document {
                 </body>
             </Html>
         )
-    }
 }
 
 export default MyDocument
