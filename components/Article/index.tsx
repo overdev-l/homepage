@@ -12,12 +12,11 @@ interface Iprops {
     post: Post
 }
 const Article = ({ post }: Iprops) => {
-
     return (
         <article className='flex justify-between'>
                 <h3>
                 <Link
-                 href="/"
+                 href={`/blogs/${post.slug.replace(/\.mdx?$/, '')}`}
                  className='align-bottom text-sm font-serif dark:text-slate-100 underline decoration-dashed hover:no-underline'>
                     <cite>
                         {post.frontmatter.title}

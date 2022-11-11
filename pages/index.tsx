@@ -1,6 +1,6 @@
 import fs from 'fs'
 import matter from 'gray-matter'
-import Article from "components/Article"
+import Article from "../components/Article"
 import { postsFileName, postsPath } from "utils/mdxUtils"
 import dayjs from 'dayjs'
 import path from 'path'
