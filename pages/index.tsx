@@ -17,12 +17,14 @@ interface Iprops {
   posts: Array<Post>
 }
 export default function Home({ posts }: Iprops) {
-  console.log(posts)
   return (
-    <div className="w-full h-full flex flex-col gap-y-[50px]">
-      {
-        posts.map(post => (<Article key={post.slug} post={post} />))
-      }
+    <div className="w-full h-full">
+      <h1 className='title text-lg w-full pt-[30px] text-center'>择善从之，不善改之</h1>
+      <section className=' flex flex-col gap-y-[5px] border-t'>
+        {
+          posts.map(post => (<Article key={post.slug} post={post} />))
+        }
+      </section>
     </div>
   )
 }

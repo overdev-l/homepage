@@ -1,5 +1,7 @@
 @import url('./logo/KolkerBrush-Regular-embed.css');
 @import url('./logo/KolkerBrush-Regular.css');
+@import url('./title/LiuJianMaoCao-Regular-embed.css');
+@import url('./title/LiuJianMaoCao-Regular.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,4 +12,7 @@ html, body {
 .logo {
   font-family: 'KolkerBrush-Regular';
   font-size: 38px;
+}
+.title {
+  font-family: 'LiuJianMaoCao-Regular';
 }

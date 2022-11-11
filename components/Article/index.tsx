@@ -14,14 +14,17 @@ interface Iprops {
 const Article = ({ post }: Iprops) => {
 
     return (
-        <article>
-            <header>
+        <article className='flex justify-between'>
                 <h3>
-                <Link href="/" className='text-2xl font-serif font-bold dark:text-slate-300'>{post.frontmatter.title}</Link>
+                <Link
+                 href="/"
+                 className='align-bottom text-sm font-serif dark:text-slate-100 underline decoration-dashed hover:no-underline'>
+                    <cite>
+                        {post.frontmatter.title}
+                    </cite>
+                </Link>
                 </h3>
                 <small className='font-serif dark:text-slate-300'>{post.frontmatter.date}</small>
-            </header>
-            <p className='text-xl font-serif dark:text-slate-300'>{post.frontmatter.description}</p>
         </article>
     )
 }
