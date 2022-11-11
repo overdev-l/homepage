@@ -4,7 +4,7 @@ function MyDocument() {
         return (
             <Html lang="zh-CN">
                 <Head>
-                    <link rel="icon" href="/avatar.svg" />
+                    <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <body>
                     <Main />
