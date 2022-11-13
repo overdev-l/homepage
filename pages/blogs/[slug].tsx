@@ -42,7 +42,7 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
     frontmatter.date = dayjs(frontmatter.date).format('YYYY-MM-DD')
     const mdxSource = await serialize(content, {
         mdxOptions: {
-            recmaPlugins: [ rehypeHighlight ]
+            rehypePlugins: [ rehypeHighlight ]
         }
     })
     return {
