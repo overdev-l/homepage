@@ -38,6 +38,7 @@ export async function getStaticProps() {
       slug
     }
   })
+  data.sort((pre, nex) => (new Date(nex.frontmatter.date).getTime()) - (new Date(pre.frontmatter.date).getTime()))
   const posts = JSON.parse(JSON.stringify(data)).map((item: Post) => ({
     ...item,
     frontmatter: {

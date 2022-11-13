@@ -9,6 +9,7 @@ import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemoteProps } from 'next-mdx-remote'
 import BlogHeader from '../../components/blogHeader/blogHeader'
 import BlogContent from '../../components/BlogContent/BlogContent'
+import rehypeHighlight from 'rehype-highlight'
 type Frontmatter = {
     title: string
     date: Date
@@ -24,7 +25,7 @@ const SingleBlogPage = ({ frontmatter, mdxSource }: IProps) => {
         <BlogHeader frontmatter={frontmatter}/>
         <div className="w-full h-full">
       <h1 className='text-lg w-full pt-[30px] text-center'>{frontmatter.title}</h1>
-      <section className=' flex flex-col gap-y-[5px] border-t'>
+      <section className=' flex flex-col gap-y-[5px] border-t prose prose-stone dark:prose-invert'>
         <BlogContent mdxSource={mdxSource}/>
       </section>
     </div>
@@ -39,7 +40,11 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
     const fileContent = fs.readFileSync(filePath, 'utf-8')
     const { data: frontmatter, content } = matter(fileContent)
     frontmatter.date = dayjs(frontmatter.date).format('YYYY-MM-DD')
-    const mdxSource = await serialize(content)
+    const mdxSource = await serialize(content, {
+        mdxOptions: {
+            recmaPlugins: [ rehypeHighlight ]
+        }
+    })
     return {
         props: {
             frontmatter,
