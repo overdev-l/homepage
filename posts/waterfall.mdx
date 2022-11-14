@@ -1,5 +1,5 @@
 ---
-title: 移动端双列瀑布流的实现、优化与扩展
+title: 瀑布流的实现、优化与扩展
 date: 2022-11-14
 description: 双列瀑布流的实现、多列瀑布流的实现以及图片加载优化
 ---
@@ -14,7 +14,17 @@ description: 双列瀑布流的实现、多列瀑布流的实现以及图片加�
 
 > 这里使用`javascript`搭配 `flex`布局实现
 
-首先我们需要构建一个瀑布流框架
+首先我们需要构建一个瀑布流框架，这里为了方便`css`部分使用[tailwindcss](https://tailwindcss.com/)完成
+
+![瀑布流容器](https://image.liuyongzhi.cn/imageswater-code-01.png)
+
+<center><font face="黑体" size="1" >瀑布流容器</font></center>
+
+![图片Card](https://image.liuyongzhi.cn/imageswater-code-02.png)
+
+<center><font face="黑体" size="1" >图片Card</font></center>
+
+接下来是重点，我们需要根据服务端返回的数据渲染列表。在渲染之前我们需要先进行计算当前图片应该是放在左列和右列，由于图片原尺寸不一致所以我们要进行系数换算
 
 
 <Waterfall />
