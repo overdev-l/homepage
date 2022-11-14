@@ -3,6 +3,7 @@ import matter from 'gray-matter'
 import Article from "../components/Article"
 import { postsFileName, postsPath } from "utils/mdxUtils"
 import dayjs from 'dayjs'
+import readingTime from 'reading-time'
 import path from 'path'
 type Frontmatter = {
   title: string
@@ -11,7 +12,8 @@ type Frontmatter = {
 }
 interface Post {
   slug: string
-  frontmatter: Frontmatter
+  frontmatter: Frontmatter,
+  readTime: string
 }
 interface Iprops {
   posts: Array<Post>
@@ -22,7 +24,7 @@ export default function Home({ posts }: Iprops) {
       <h2 className='title text-lg w-full pt-[30px] text-center'>择善从之，不善改之</h2>
       <section className=' flex flex-col gap-y-[5px] border-t'>
         {
-          posts.map(post => (<Article key={post.slug} post={post} />))
+          posts.map(post => (<Article key={post.slug} post={post}/>))
         }
       </section>
     </div>
@@ -31,11 +33,12 @@ export default function Home({ posts }: Iprops) {
 
 export async function getStaticProps() {
   const data = postsFileName.map(slug => {
-    const content = fs.readFileSync(path.join(postsPath, slug))
+    const content = fs.readFileSync(path.join(postsPath, slug), 'utf-8')
     const { data } = matter(content)
     return {
       frontmatter: data,
-      slug
+      slug,
+      readTime: readingTime(content).text
     }
   })
   data.sort((pre, nex) => (new Date(nex.frontmatter.date).getTime()) - (new Date(pre.frontmatter.date).getTime()))

@@ -10,6 +10,9 @@ import { MDXRemoteProps } from 'next-mdx-remote'
 import BlogHeader from '../../components/blogHeader/blogHeader'
 import BlogContent from '../../components/BlogContent/BlogContent'
 import rehypeHighlight from 'rehype-highlight'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeCodeTitles from 'rehype-code-titles'
 type Frontmatter = {
     title: string
     date: Date
@@ -24,11 +27,11 @@ const SingleBlogPage = ({ frontmatter, mdxSource }: IProps) => {
         <>
         <BlogHeader frontmatter={frontmatter}/>
         <div className="w-full h-full">
-      <h1 className='text-lg w-full pt-[30px] text-center'>{frontmatter.title}</h1>
-      <section className=' flex flex-col gap-y-[5px] border-t prose prose-stone dark:prose-invert'>
-        <BlogContent mdxSource={mdxSource}/>
-      </section>
-    </div>
+            <h1 className='text-lg w-full pt-[30px] text-center'>{frontmatter.title}</h1>
+            <section className=' flex flex-col gap-y-[5px] border-t prose prose-stone dark:prose-invert'>
+                <BlogContent mdxSource={mdxSource}/>
+            </section>
+        </div>
         </>
     )
 }
@@ -42,14 +45,25 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
     frontmatter.date = dayjs(frontmatter.date).format('YYYY-MM-DD')
     const mdxSource = await serialize(content, {
         mdxOptions: {
-            rehypePlugins: [ rehypeHighlight ]
-        }
+            rehypePlugins: [
+              rehypeSlug,
+              [
+                rehypeAutolinkHeadings,
+                {
+                  properties: { className: ['anchor'] },
+                },
+                { behaviour: 'wrap' },
+              ],
+              rehypeHighlight,
+              rehypeCodeTitles,
+            ],
+          }
     })
     return {
         props: {
             frontmatter,
             mdxSource,
-            slug
+            slug,
         }
     }
 }
