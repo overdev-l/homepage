@@ -19,7 +19,7 @@ interface Iprops {
 export default function Home({ posts }: Iprops) {
   return (
     <div className="w-full h-full">
-      <h1 className='title text-lg w-full pt-[30px] text-center'>择善从之，不善改之</h1>
+      <div className='title text-lg w-full pt-[30px] text-center'>择善从之，不善改之</div>
       <section className=' flex flex-col gap-y-[5px] border-t'>
         {
           posts.map(post => (<Article key={post.slug} post={post} />))
