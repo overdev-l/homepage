@@ -1,1 +1,0 @@
-export const TextButton = () => <button>click me</button>
