@@ -7,7 +7,7 @@ import { NextSeo } from 'next-seo'
 import SeoConfig from '../seo'
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider attribute="class">
+    <ThemeProvider attribute="class" defaultTheme='light'>
       <Layout>
         <NextSeo {...SeoConfig}></NextSeo>
         <Component {...pageProps} />
