@@ -1,13 +1,10 @@
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
-import { TextButton } from '../../posts/components/test'
 interface Iprops {
-    mdxSource: MDXRemoteProps
+    mdxSource: MDXRemoteProps,
 }
-const component = {
-    TextButton
-}
+const components = {}
 const BlogContent = ({ mdxSource }: Iprops) => <>
-    <MDXRemote {...mdxSource} {...component}></MDXRemote>
+    <MDXRemote {...mdxSource} components={components}></MDXRemote>
 </>
 
 export default BlogContent
