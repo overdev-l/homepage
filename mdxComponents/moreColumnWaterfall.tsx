@@ -28,7 +28,7 @@ const Card = ({ source, description }: CardData) => {
     )
 }
 
-export function Waterfall() {
+export default function MoreColumnWaterfall() {
     const column = 5
     const [waterfall, setWaterfall] = useState<Array<Array<CardData>>>(new Array(column).fill(new Array()))
     const fetchData = async () => {
@@ -46,8 +46,12 @@ export function Waterfall() {
             const element = cards[i];
             const { width, height } = await calculateImage(element.source)
             element.height = 100 / width * height
-            const newData = JSON.parse(JSON.stringify(waterfall))[index].push(element)
-            setWaterfall(newData)
+            setWaterfall(fall => {
+                return fall.map((_, key) => {
+                    if (key === index) return [..._, element]
+                    return [..._]
+                })
+            })
             targets[0].height += element.height
         }
         
