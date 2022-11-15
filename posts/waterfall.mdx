@@ -45,11 +45,13 @@ export function Waterfall() {
 interface CardData {
     source: string
     description: string
+    width: number
+    height: number
 }
 const Card = ({ source, description }: CardData) => {
     return (
         <div className="w-full my-1 h-fit">
-            <Image src={source} alt="waterfall" className='w-full h-auto' />
+            <img src={source} alt="waterfall" className='w-full h-auto my-0' />
             <small className='h-6 text-sm text-center truncate'>{description}</small>
         </div>
     )
@@ -59,11 +61,12 @@ const Card = ({ source, description }: CardData) => {
 
 接下来是重点，我们需要根据服务端返回的数据渲染列表。在渲染之前我们需要先进行计算当前图片应该是放在左列和右列，由于图片原尺寸不一致所以我们要进行系数换算，
 在系数换算之前我们需要先拿到图片的宽高
-```js
-const calculateImage = (image: string) => new Promise((resolve,reject) => {
+
+```jsx
+const calculateImage = (image: string):Promise<{height: number, width: number}> => new Promise((resolve,reject) => {
     const img = new Image()
     img.src = image
-    img.onloadeddata = () => {
+    img.onload = () => {
         resolve({
             width: img.width,
             height: img.height
@@ -75,5 +78,57 @@ const calculateImage = (image: string) => new Promise((resolve,reject) => {
 })
 ```
 
+我们需要根据服务端渲染的数据去实时计算当前图片的宽高，以及当前图片所属的位置
+<details>
+<summary>查看详情</summary>
+```jsx 
+export function Waterfall() {
+    const [leftData, setleftData] = useState<Array<CardData>>([])
+    const [rightData, setRightData] = useState<Array<CardData>>([])
++   const fetchData = async () => {
++       const { data } = await axios.get('/api/waterfall')
++       calculatePosition(data.list)
++   }
++   const calculatePosition = async (cards: Array<CardData>) => {
++       let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
++       let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
++       for (let i = 0; i < cards.length; i++) {
++           const element = cards[i];
++           const { width, height } = await calculateImage(element.source)
++           element.height = 100 / width * height
++           if (leftHeight <= rightHeight) {
++               setleftData((list) => ([...list, element]))
++               leftHeight += element.height
++           } else {
++               setRightData((list) => [...list, element])
++               rightHeight += element.height
++           }
++       }
++       
++   }
++   useEffect(() => {
++       fetchData()
++   },[])
+    return (
+        <section className="w-full h-[600px] overflow-y-auto">
+            <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
+                <div className="flex flex-col grow">
+                    {
+                        leftData.map((card, i) => <Card {...card} key={i} />)
+                    }
+                </div>
+                <div className="flex flex-col grow">
+                    {
+                        rightData.map((card, i) => <Card {...card} key={i} />)
+                    }
+                </div>
+            </div>
+        </section>
+    )
+}
+```
+</details>
 
 <Waterfall />
+
+### 多列瀑布流

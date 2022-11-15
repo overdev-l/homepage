@@ -29,26 +29,26 @@ const Card = ({ source, description }: CardData) => {
 }
 
 export function Waterfall() {
-    const [leftData, setleftData] = useState<Array<CardData>>([])
-    const [rightData, setRightData] = useState<Array<CardData>>([])
+    const column = 5
+    const [waterfall, setWaterfall] = useState<Array<Array<CardData>>>(new Array(column).fill(new Array()))
     const fetchData = async () => {
         const { data } = await axios.get('/api/waterfall')
         calculatePosition(data.list)
     }
     const calculatePosition = async (cards: Array<CardData>) => {
-        let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
-        let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
+        const targets = waterfall.map((list, index) => ({
+            height: list.reduce((pre, nex) => pre + nex.height, 0),
+            index
+        }))
         for (let i = 0; i < cards.length; i++) {
+            targets.sort((a, b) => a.height - b.height)
+            const index = targets[0].index
             const element = cards[i];
             const { width, height } = await calculateImage(element.source)
             element.height = 100 / width * height
-            if (leftHeight <= rightHeight) {
-                leftHeight += element.height
-                setleftData((list) => ([...list, element]))
-            } else {
-                rightHeight += element.height
-                setRightData((list) => [...list, element])
-            }
+            const newData = JSON.parse(JSON.stringify(waterfall))[index].push(element)
+            setWaterfall(newData)
+            targets[0].height += element.height
         }
         
     }
@@ -58,16 +58,18 @@ export function Waterfall() {
     return (
         <section className="w-full h-[600px] overflow-y-auto">
             <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
-                <div className="flex flex-col grow">
-                    {
-                        leftData.map((card, i) => <Card {...card} key={i} />)
-                    }
-                </div>
-                <div className="flex flex-col grow">
-                    {
-                        rightData.map((card, i) => <Card {...card} key={i} />)
-                    }
-                </div>
+                {
+                    waterfall.map((parent, index) => {
+                        return (
+                            <div className="flex flex-col grow" key={`parent-${index}`}>
+                                {
+                                    parent.map((card, i) => <Card {...card} key={i} />)
+                                }
+                            </div>
+                        )
+                    })
+                }
+                
             </div>
         </section>
     )

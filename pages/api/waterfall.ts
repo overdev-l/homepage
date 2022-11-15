@@ -6,11 +6,16 @@ const getRandom = (max: number,min:number) =>{
     return parseInt(String(num + min));
 }
 export default function handle(req: NextApiRequest, res: NextApiResponse) {
-    const result = mock({
-        'list|10': [{
-            'source|+1': Random.image(`${getRandom(500, 1000)}x${getRandom(500, 1000)}`),
-            'description|+1': Random.cparagraph()
-        }]
+    const result = []
+    for (let i = 0; i < 10; i++) {
+        result.push({
+            'source': Random.image(`${getRandom(500, 1000)}x${getRandom(500, 1000)}`),
+            'description': Random.ctitle(10, 15)
+        })
+        
+    }
+    const data = mock({
+        'list': result
     })
-    res.send(result)
+    res.send(data)
 }
