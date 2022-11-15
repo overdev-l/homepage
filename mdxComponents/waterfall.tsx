@@ -28,7 +28,7 @@ const Card = ({ source, description }: CardData) => {
     )
 }
 
-export function Waterfall() {
+export default function Waterfall() {
     const [leftData, setleftData] = useState<Array<CardData>>([])
     const [rightData, setRightData] = useState<Array<CardData>>([])
     const fetchData = async () => {

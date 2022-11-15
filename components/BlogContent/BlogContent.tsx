@@ -1,6 +1,6 @@
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
-import { Waterfall } from '../../mdxComponents/waterfall'
-import { MoreColumnWaterfall } from '../../mdxComponents/moreColumnWaterfall'
+import Waterfall from '../../mdxComponents/waterfall'
+import MoreColumnWaterfall from '../../mdxComponents/moreColumnWaterfall'
 interface Iprops {
     mdxSource: MDXRemoteProps,
 }
