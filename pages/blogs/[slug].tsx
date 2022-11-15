@@ -13,6 +13,7 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeCodeTitles from 'rehype-code-titles'
+import 'highlight.js/styles/tokyo-night-dark.css'
 type Frontmatter = {
     title: string
     date: Date
