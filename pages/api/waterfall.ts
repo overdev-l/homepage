@@ -8,9 +8,13 @@ const getRandom = (max: number,min:number) =>{
 export default function handle(req: NextApiRequest, res: NextApiResponse) {
     const result = []
     for (let i = 0; i < 10; i++) {
+        const width = getRandom(500, 1000)
+        const height = getRandom(500, 1000)
         result.push({
-            'source': Random.image(`${getRandom(500, 1000)}x${getRandom(500, 1000)}`),
-            'description': Random.ctitle(10, 15)
+            source: Random.image(`${width}x${height}`),
+            description: Random.ctitle(10, 15),
+            height,
+            width
         })
         
     }

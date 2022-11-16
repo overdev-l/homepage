@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import {useEffect, useLayoutEffect, useRef, useState} from 'react'
 import axios from 'axios'
 interface CardData {
     source: string
@@ -6,23 +6,28 @@ interface CardData {
     width: number
     height: number
 }
-const calculateImage = (image: string):Promise<{height: number, width: number}> => new Promise((resolve,reject) => {
-    const img = new Image()
-    img.src = image
-    img.onload = () => {
-        resolve({
-            width: img.width,
-            height: img.height
-        })
-    }
-    img.onerror = e => {
-        reject(e)
-    }
-})
-const Card = ({ source, description }: CardData) => {
+const Card = ({ source, description, width, height }: CardData) => {
+    const imgRef = useRef<HTMLImageElement>(null)
+    const container = useRef<HTMLImageElement>(null)
+    useEffect(() => {
+        const ob = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                imgRef.current!.src = imgRef.current?.getAttribute('data-src')!
+                ob.unobserve(imgRef.current!)
+            }
+        }, { rootMargin: '100px' })
+        ob.observe(imgRef.current!)
+        return () => {
+            ob.disconnect()
+        }
+    }, [])
+    useLayoutEffect(() => {
+        const imgHeight = container.current!.clientWidth / width * height
+        imgRef.current!.height = imgHeight
+    }, [])
     return (
-        <div className="w-full my-1 h-fit">
-            <img src={source} alt="waterfall" className='w-full h-auto my-0' />
+        <div className="w-full my-1 h-fit" ref={container}>
+            <img data-src={source} ref={imgRef} alt="waterfall" className='w-full h-auto my-0' />
             <small className='h-6 text-sm text-center truncate'>{description}</small>
         </div>
     )
@@ -44,8 +49,7 @@ export default function MoreColumnWaterfall() {
             targets.sort((a, b) => a.height - b.height)
             const index = targets[0].index
             const element = cards[i];
-            const { width, height } = await calculateImage(element.source)
-            element.height = 100 / width * height
+            element.height = 100 / element.width * element.height
             setWaterfall(fall => {
                 return fall.map((_, key) => {
                     if (key === index) return [..._, element]
