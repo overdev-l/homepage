@@ -54,7 +54,7 @@ export default function MoreColumnWaterfall() {
             })
             targets[0].height += element.height
         }
-        
+
     }
     useEffect(() => {
         fetchData()
@@ -73,7 +73,7 @@ export default function MoreColumnWaterfall() {
                         )
                     })
                 }
-                
+
             </div>
         </section>
     )

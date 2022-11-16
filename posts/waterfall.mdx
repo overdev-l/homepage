@@ -16,7 +16,7 @@ description: 双列瀑布流的实现、多列瀑布流的实现以及图片加�
 
 首先我们需要构建一个瀑布流框架，这里为了方便`css`部分使用[tailwindcss](https://tailwindcss.com/)完成
 
-```jsx
+```typescript jsx
 export function Waterfall() {
     const [leftData, setleftData] = useState<Array<CardData>>([])
     const [rightData, setRightData] = useState<Array<CardData>>([])
@@ -41,7 +41,7 @@ export function Waterfall() {
 
 <center><font face="黑体" size="1" >瀑布流容器</font></center>
 
-```jsx
+```typescript jsx
 interface CardData {
     source: string
     description: string
@@ -62,7 +62,7 @@ const Card = ({ source, description }: CardData) => {
 接下来是重点，我们需要根据服务端返回的数据渲染列表。在渲染之前我们需要先进行计算当前图片应该是放在左列和右列，由于图片原尺寸不一致所以我们要进行系数换算，
 在系数换算之前我们需要先拿到图片的宽高
 
-```jsx
+```typescript jsx
 const calculateImage = (image: string):Promise<{height: number, width: number}> => new Promise((resolve,reject) => {
     const img = new Image()
     img.src = image
@@ -79,59 +79,264 @@ const calculateImage = (image: string):Promise<{height: number, width: number}> 
 ```
 
 我们需要根据服务端渲染的数据去实时计算当前图片的宽高，以及当前图片所属的位置
-<details>
-<summary>点击查看代码</summary>
-```jsx 
-export function Waterfall() {
-    const [leftData, setleftData] = useState<Array<CardData>>([])
-    const [rightData, setRightData] = useState<Array<CardData>>([])
-+   const fetchData = async () => {
-+       const { data } = await axios.get('/api/waterfall')
-+       calculatePosition(data.list)
-+   }
-+   const calculatePosition = async (cards: Array<CardData>) => {
-+       let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
-+       let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
-+       for (let i = 0; i < cards.length; i++) {
-+           const element = cards[i];
-+           const { width, height } = await calculateImage(element.source)
-+           element.height = 100 / width * height
-+           if (leftHeight <= rightHeight) {
-+               setleftData((list) => ([...list, element]))
-+               leftHeight += element.height
-+           } else {
-+               setRightData((list) => [...list, element])
-+               rightHeight += element.height
-+           }
-+       }
-+       
-+   }
-+   useEffect(() => {
-+       fetchData()
-+   },[])
-    return (
-        <section className="w-full h-[600px] overflow-y-auto">
-            <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
-                <div className="flex flex-col grow">
-                    {
-                        leftData.map((card, i) => <Card {...card} key={i} />)
-                    }
-                </div>
-                <div className="flex flex-col grow">
-                    {
-                        rightData.map((card, i) => <Card {...card} key={i} />)
-                    }
-                </div>
-            </div>
-        </section>
-    )
+
+```typescript jsx
+    const calculatePosition = async (cards: Array<CardData>) => {
+    let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
+    let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
+    for (let i = 0; i < cards.length; i++) {
+    const element = cards[i];
+    const { width, height } = await calculateImage(element.source)
+    element.height = 100 / width * height
+    if (leftHeight <= rightHeight) {
+    leftHeight += element.height
+    setleftData((list) => ([...list, element]))
+} else {
+    rightHeight += element.height
+    setRightData((list) => [...list, element])
+}
+}
+
 }
 ```
+
+<details>
+    <summary>点击查看完整代码</summary>
+
+    ```typescript jsx
+    interface CardData {
+    source: string
+    description: string
+    width: number
+    height: number
+}
+    const calculateImage = (image: string):Promise<{height: number, width: number}> => new Promise((resolve,reject) => {
+    const img = new Image()
+    img.src = image
+    img.onload = () => {
+    resolve({
+    width: img.width,
+    height: img.height
+})
+}
+    img.onerror = e => {
+    reject(e)
+}
+})
+    const Card = ({ source, description }: CardData) => {
+    return (
+    <div className="w-full my-1 h-fit">
+    <img src={source} alt="waterfall" className='w-full h-auto my-0' />
+    <small className='h-6 text-sm text-center truncate'>{description}</small>
+    </div>
+    )
+}
+
+    export default function Waterfall() {
+    const [leftData, setleftData] = useState<Array<CardData>>([])
+    const [rightData, setRightData] = useState<Array<CardData>>([])
+    const fetchData = async () => {
+    const { data } = await axios.get('/api/waterfall')
+    calculatePosition(data.list)
+}
+    const calculatePosition = async (cards: Array<CardData>) => {
+    let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
+    let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
+    for (let i = 0; i < cards.length; i++) {
+    const element = cards[i];
+    const { width, height } = await calculateImage(element.source)
+    element.height = 100 / width * height
+    if (leftHeight <= rightHeight) {
+    leftHeight += element.height
+    setleftData((list) => ([...list, element]))
+} else {
+    rightHeight += element.height
+    setRightData((list) => [...list, element])
+}
+}
+
+}
+    useEffect(() => {
+    fetchData()
+},[])
+    return (
+    <section className="w-full h-[600px] overflow-y-auto">
+    <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
+    <div className="flex flex-col grow">
+{
+    leftData.map((card, i) => <Card {...card} key={i} />)
+}
+    </div>
+    <div className="flex flex-col grow">
+{
+    rightData.map((card, i) => <Card {...card} key={i} />)
+}
+    </div>
+    </div>
+    </section>
+    )
+}
+    ```
+
 </details>
 
-<center><font face="黑体" size="1" >双列瀑布流</font></center>
-<Waterfall />
 
 ### 多列瀑布流
+多列瀑布流的实现其实和双列瀑布流没有太多区别，双列瀑布流是每列一个`list`各自渲染各自，多列就是将所有的列放在一个`list`中，每个`list`管理各自数据
+所以我们需要先构建一个由列数确定的二维数组，每个元素代表每列，元素中的`card`数据代表当前列的数据
 
-<MoreColumnWaterfall />
+
+```typescript jsx
+const column = 5
+const [waterfall, setWaterfall] = useState<Array<Array<CardData>>>(new Array(column).fill(new Array()))
+```
+
+确定列之后我们通过计算来确定决定每个`card`所在的列
+
+```typescript jsx
+const calculatePosition = async (cards: Array<CardData>) => {
+        const targets = waterfall.map((list, index) => ({
+            height: list.reduce((pre, nex) => pre + nex.height, 0),
+            index
+        }))
+        for (let i = 0; i < cards.length; i++) {
+            targets.sort((a, b) => a.height - b.height)
+            const index = targets[0].index
+            const element = cards[i];
+            const { width, height } = await calculateImage(element.source)
+            element.height = 100 / width * height
+            setWaterfall(fall => {
+                return fall.map((_, key) => {
+                    if (key === index) return [..._, element]
+                    return [..._]
+                })
+            })
+            targets[0].height += element.height
+        }
+
+    }
+```
+
+通过计算过后我们整理好了对应的数据 如下：
+
+```json
+[[{"source":"http://dummyimage.com/725x638","description":"片发领交江油况适学利知由理","height":88},{"source":"http://dummyimage.com/807x587","description":"离选第建情才响三点术究进","height":72.73853779429987}],[{"source":"http://dummyimage.com/530x767","description":"从实精车法改运较力究色究","height":144.7169811320755}],[{"source":"http://dummyimage.com/539x707","description":"由人龙数情达动公构它好根文况月","height":131.16883116883116},{"source":"http://dummyimage.com/767x875","description":"毛节则九际少话原花土工取理气部","height":114.08083441981748}],[{"source":"http://dummyimage.com/707x723","description":"划水京养界统外之布县精所见","height":102.26308345120226},{"source":"http://dummyimage.com/567x809","description":"例便收除因现号志信到火大提种","height":142.68077601410934}],[{"source":"http://dummyimage.com/958x759","description":"段至开件过通才业压强拉间","height":79.22755741127348},{"source":"http://dummyimage.com/648x671","description":"划非除市地家东给存始程战他","height":103.54938271604938}]]
+```
+
+
+拿到数据后进行渲染：
+
+
+```typescript jsx
+<section className="w-full h-[600px] overflow-y-auto">
+            <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
+                {
+                    waterfall.map((parent, index) => {
+                        return (
+                            <div className="flex flex-col grow" key={`parent-${index}`}>
+                                {
+                                    parent.map((card, i) => <Card {...card} key={i} />)
+                                }
+                            </div>
+                        )
+                    })
+                }
+
+            </div>
+        </section>
+```
+
+<details>
+    <summary>点击查看完成代码</summary>
+
+    ```typescript jsx
+    interface CardData {
+    source: string
+    description: string
+    width: number
+    height: number
+}
+    const calculateImage = (image: string):Promise<{height: number, width: number}> => new Promise((resolve,reject) => {
+    const img = new Image()
+    img.src = image
+    img.onload = () => {
+    resolve({
+    width: img.width,
+    height: img.height
+})
+}
+    img.onerror = e => {
+    reject(e)
+}
+})
+    const Card = ({ source, description }: CardData) => {
+    return (
+    <div className="w-full my-1 h-fit">
+    <img src={source} alt="waterfall" className='w-full h-auto my-0' />
+    <small className='h-6 text-sm text-center truncate'>{description}</small>
+    </div>
+    )
+}
+
+    export default function MoreColumnWaterfall() {
+    const column = 5
+    const [waterfall, setWaterfall] = useState<Array<Array<CardData>>>(new Array(column).fill(new Array()))
+    const fetchData = async () => {
+    const { data } = await axios.get('/api/waterfall')
+    calculatePosition(data.list)
+}
+    const calculatePosition = async (cards: Array<CardData>) => {
+    const targets = waterfall.map((list, index) => ({
+    height: list.reduce((pre, nex) => pre + nex.height, 0),
+    index
+}))
+    for (let i = 0; i < cards.length; i++) {
+    targets.sort((a, b) => a.height - b.height)
+    const index = targets[0].index
+    const element = cards[i];
+    const { width, height } = await calculateImage(element.source)
+    element.height = 100 / width * height
+    setWaterfall(fall => {
+    return fall.map((_, key) => {
+    if (key === index) return [..._, element]
+    return [..._]
+})
+})
+    targets[0].height += element.height
+}
+
+}
+    useEffect(() => {
+    fetchData()
+},[])
+    return (
+    <section className="w-full h-[600px] overflow-y-auto">
+    <div className="w-full flex px-2.5 gap-y-1 h-fit gap-2.5">
+{
+    waterfall.map((parent, index) => {
+    return (
+    <div className="flex flex-col grow" key={`parent-${index}`}>
+{
+    parent.map((card, i) => <Card {...card} key={i} />)
+}
+    </div>
+    )
+})
+}
+
+    </div>
+    </section>
+    )
+}
+    ```
+
+</details>
+
+
+### 优化
+
+- 数据加载优化
+
+- 图片加载优化
+
+优化主要是从以上两个角度来切入，首先针对于第一点，因为我们在给图片排序时是使用
