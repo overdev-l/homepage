@@ -2,6 +2,7 @@
 @import url('./logo/KolkerBrush-Regular.css');
 @import url('./title/LiuJianMaoCao-Regular-embed.css');
 @import url('./title/LiuJianMaoCao-Regular.css');
+@import url('./theme.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

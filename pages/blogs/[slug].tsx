@@ -9,11 +9,8 @@ import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemoteProps } from 'next-mdx-remote'
 import BlogHeader from '../../components/blogHeader/blogHeader'
 import BlogContent from '../../components/BlogContent/BlogContent'
-import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeCodeTitles from 'rehype-code-titles'
-import 'highlight.js/styles/tokyo-night-dark.css'
+import remarkPrism from 'remark-prism'
 type Frontmatter = {
     title: string
     date: Date
@@ -47,17 +44,11 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
     const mdxSource = await serialize(content, {
         mdxOptions: {
             rehypePlugins: [
-              rehypeSlug,
-              [
-                rehypeAutolinkHeadings,
-                {
-                  properties: { className: ['anchor'] },
-                },
-                { behaviour: 'wrap' },
-              ],
-              rehypeHighlight,
-              rehypeCodeTitles,
+              rehypeSlug
             ],
+            remarkPlugins: [
+                remarkPrism
+            ]
           }
     })
     return {
