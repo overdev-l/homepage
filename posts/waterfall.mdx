@@ -16,7 +16,7 @@ description: 双列瀑布流的实现、多列瀑布流的实现以及图片加�
 
 首先我们需要构建一个瀑布流框架，这里为了方便`css`部分使用[tailwindcss](https://tailwindcss.com/)完成
 
-```typescript jsx
+```typescript jsx 
 export function Waterfall() {
     const [leftData, setleftData] = useState<Array<CardData>>([])
     const [rightData, setRightData] = useState<Array<CardData>>([])
@@ -360,7 +360,7 @@ const calculateImage = (image: string):Promise<{height: number, width: number}> 
 })
 ```
 
-``` typescript showLineNumbers {5,15-17}
+``` typescript {6-8}
     const calculatePosition = async (cards: Array<CardData>) => {
         let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
         let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
