@@ -3,6 +3,7 @@
 @import url('./title/LiuJianMaoCao-Regular-embed.css');
 @import url('./title/LiuJianMaoCao-Regular.css');
 @import url('./theme.css');
+@import url('./prism-plus.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

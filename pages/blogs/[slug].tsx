@@ -10,7 +10,8 @@ import { MDXRemoteProps } from 'next-mdx-remote'
 import BlogHeader from '../../components/blogHeader/blogHeader'
 import BlogContent from '../../components/BlogContent/BlogContent'
 import rehypeSlug from 'rehype-slug'
-import remarkPrism from 'remark-prism'
+import rehypePrism from 'rehype-prism-plus'
+import rehypePrismDiff from 'rehype-prism-diff'
 type Frontmatter = {
     title: string
     date: Date
@@ -44,10 +45,11 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
     const mdxSource = await serialize(content, {
         mdxOptions: {
             rehypePlugins: [
-              rehypeSlug
+              rehypeSlug,
+              rehypePrismDiff,
+              [rehypePrism, { ignoreMissing: true }]
             ],
             remarkPlugins: [
-                remarkPrism
             ]
           }
     })

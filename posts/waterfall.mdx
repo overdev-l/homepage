@@ -360,7 +360,7 @@ const calculateImage = (image: string):Promise<{height: number, width: number}> 
 })
 ```
 
-``` typescript jsx
+``` typescript showLineNumbers {5,15-17}
     const calculatePosition = async (cards: Array<CardData>) => {
         let leftHeight = leftData.reduce((pre, nex) =>pre + nex.height, 0)
         let rightHeight = rightData.reduce((pre, nex) =>pre + nex.height, 0)
