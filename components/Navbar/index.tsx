@@ -20,7 +20,7 @@ const Navbar = () => {
         <h1 className="logo text-black dark:text-slate-300">
             <Link href="/">Yongzhi</Link>
         </h1>
-        <Image className="cursor-pointer" src={thmeIcon} alt="theme" width="30" height="30" onClick={changeTheme} />
+        <Image className="cursor-pointer w-[30px] h-[30px]" src={thmeIcon} alt="theme" width="30" height="30" onClick={changeTheme} />
     </header>
   )
 }
