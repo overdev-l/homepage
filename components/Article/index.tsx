@@ -18,7 +18,7 @@ const Article = ({ post }: Iprops) => {
         <article className='flex items-center'>
                 <h3 className='flex  gap-[20px]'>
                   <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 inline-block w-[80px]'>{post.frontmatter.date}</span>
-                  <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 flex gap-2'>
+                  <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 flex gap-2 w-[100px]'>
                     <Image src="/readTime.svg" width={10} height={10} alt="reading time"></Image>
                     <span>{post.readTime}</span>
                     </span>
