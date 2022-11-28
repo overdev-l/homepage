@@ -18,9 +18,9 @@ const Article = ({ post }: Iprops) => {
         <article className='flex items-center'>
                 <h3 className='flex  gap-[20px]'>
                   <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 inline-block w-[80px]'>{post.frontmatter.date}</span>
-                  <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 flex gap-2 w-[100px]'>
+                  <span className='font-light text-sm text-neutral-400 dark:text-neutral-200 flex items-center justify-center gap-2 w-[100px] justify-start'>
                       <Image src="/readTime.svg" alt="reading time" width={10} height={10} className="w-[10px] h-[10px]"></Image>
-                    <span>{post.readTime}</span>
+                    <span className='text-start'>{post.readTime}</span>
                     </span>
                   <Link
                   href={`/blogs/${post.slug.replace(/\.mdx?$/, '')}`}
