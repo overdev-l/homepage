@@ -1,7 +1,7 @@
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
 import Waterfall from '../../mdxComponents/waterfall'
 import MoreColumnWaterfall from '../../mdxComponents/moreColumnWaterfall'
-import ContenteditableEitorMark from '../../mdxComponents/contenteditableEitorMark'
+import ContenteditableEitorMark from '../../mdxComponents/contenteditableEidtorMark'
 interface Iprops {
     mdxSource: MDXRemoteProps,
 }
