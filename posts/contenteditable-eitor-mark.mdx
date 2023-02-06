@@ -1,0 +1,134 @@
+---
+title: 使用contenteditable实现输入框标记多音字
+date: 2023-02-06
+description: 使用contenteditable实现纯文本输入框，并实现多音字标记
+---
+
+### 前言
+
+目前关于`contenteditable`如何使用的文章有很多，就不解释相关用法了，可以直接看 [如何让contenteditable元素只能输入纯文本](https://www.zhangxinxu.com/wordpress/2016/01/contenteditable-plaintext-only/) 或者
+[MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLElement/contentEditable)。
+
+### 实现
+
+有关布局与css实现这里就不过多介绍了直接上代码
+
+```tsx
+import './index.less'
+export default () => {
+
+    return (
+        <div className="container">
+            <div className="target">
+            <div className="header">
+                <div className="polyphone">
+                    多音字
+                    {
+                        pinyinTipsVisible ? <div className="pinyin-tips">
+                            {
+                            pinyins.map(py => {
+                                return <div key={py} className="py-current" onClick={() => setCurrentPinyin(py)}>{py}</div>
+                            })
+                            }
+                        </div> : null
+                    }
+                </div>
+            </div>
+            <div className="editor" contentEditable="plaintext-only" suppressContentEditableWarning="true">
+                在这里我其实主张“平等相待，泰然处之”。
+            </div>
+            </div>
+        </div>
+    )
+}
+```
+
+> 在这里如果我们不添加`suppressContentEditableWarning="true"`会导致 React 抛出警告
+![](https://image.liuyongzhi.cn/imagespolyphonic-word-react-error.png)
+
+当用户出发选中操作时，存储选中信息，我们可以使用`document.getSelection().getRangeAt(0)`来获取选区信息
+- collapsed: 选区的起始位置和终止位置是否相同 (如果相同，那么就意味着没有选中任何文本)
+- endOffset: 选区的终点位置
+- startOffset: 选区的起点位置
+- startContainer: 选区起点位置所在的节点
+- endContainer: 选区终点位置所在的节点
+- commonAncestorContainer: `startContainer`与`endContainer`的最近一级的共同父节点
+
+关于选区校验：
+- 没有选中文字
+- 选中文字大于一个
+- 选中的不是文字
+
+以上全都不通过校验
+```ts
+const selectionValidate = () => {
+    const reg = /[\u4e00-\u9fa5]/
+    const {startOffset, endOffset, collapsed, endContainer, startContainer, commonAncestorContainer} = document.getSelection().getRangeAt(0)
+    const selectTarget = commonAncestorContainer.nodeValue.substring(startOffset, endOffset)
+    return (collapsed|| !(endOffset - startOffset === 1 && endContainer === startContainer) || !reg.test(selectTarget))
+}
+```
+
+以上的校验保证了我们选中的问题一定是在一个 `node节点` 中，为我们下一步节点处理打下基础
+
+接下来我们需要保存一下重要数据
+- selectTarget 选中的文字
+- startOffset 选区起点
+- endOffset 选区终点
+- commonAncestorContainer 选区所在节点的父元素
+```ts
+document.addEventListener("selectionchange", e => {
+      const val = selectionValidate()
+      if (val) return
+      setCurrentText(selectTarget)
+      setSelectStart(startOffset)
+      setSelectEnd(endOffset)
+      setSelectNode(commonAncestorContainer)
+    })
+```
+
+接下来我们需要获取到文字的读音，这里我们使用 `pinyin` 这个npm包，具体用法可以查看[github](https://github.com/hotoo/pinyin)
+
+```sh
+npm install pinyin@alpha --save
+```
+
+当用户点击按钮匹配的时候，我们获取所有读音存储并展示选择弹框
+
+```ts
+const pys = pinyin(currenText, {
+      heteronym: true
+    })
+    setPinyins(pys[0])
+    setPinyinTipsVisible(true)
+  }
+```
+
+当用户选择某个读音时，我们需要在编辑区处理读音标记，因为我们之前已经把节点元素保存，我们可以根据此节点元素的父元素，以当前节点为参照物进行插入、和删除节点
+- 获取选中节点的父节点
+- 获取选中文字左边的内容
+- 创建标记的文字节点，设置编辑内容
+- 获取选中文字右边的内容
+- 通过父元素的`insertBefore`以选中节点为参照向前依次插入文字左边的内容、多音字标记、文字右边的内容，删除原来选中的节点
+
+```ts
+  const setCurrentPinyin = (py: string) => {
+    const parentNode = selectNode.parentNode
+    const start = document.createTextNode(selectNode.nodeValue.slice(0, selectStart))
+    const current = document.createElement("i")
+    current.setAttribute("class", "mark")
+    current.innerText = currenText
+    current.setAttribute("data-mark", `[${py}]`)
+    const end = document.createTextNode(selectNode.nodeValue.slice(selectEnd))
+    parentNode.insertBefore( start, selectNode)
+    parentNode.insertBefore( current, selectNode)
+    parentNode.insertBefore( end, selectNode)
+    parentNode.removeChild(selectNode)
+    setPinyinTipsVisible(false)
+    setPinyins([])
+  }
+```
+
+到这里就完结了，整体难度不高，但是需要开发人员比较了解 `selection` API， 下面是完整demo
+
+<ContenteditableEitorMark />
