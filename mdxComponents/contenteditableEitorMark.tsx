@@ -55,6 +55,7 @@ export default function ContenteditableEitorMark() {
     parentNode.insertBefore(end, selectNode as Node)
     parentNode.removeChild(selectNode as Node)
     setPinyinTipsVisible(false)
+    setCurrentText('')
     e.stopPropagation()
   }
 
