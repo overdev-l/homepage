@@ -58,6 +58,7 @@ export default () => {
 - 没有选中文字
 - 选中文字大于一个
 - 选中的不是文字
+- 选中的节点是编辑器后代
 
 以上全都不通过校验
 ```ts
@@ -65,7 +66,8 @@ const selectionValidate = () => {
     const reg = /[\u4e00-\u9fa5]/
     const {startOffset, endOffset, collapsed, endContainer, startContainer, commonAncestorContainer} = document.getSelection().getRangeAt(0)
     const selectTarget = commonAncestorContainer.nodeValue.substring(startOffset, endOffset)
-    return (collapsed|| !(endOffset - startOffset === 1 && endContainer === startContainer) || !reg.test(selectTarget))
+    const isContains = !editor.current?.contains(commonAncestorContainer)
+    return (collapsed|| !(endOffset - startOffset === 1 && endContainer === startContainer) || !reg.test(selectTarget || isContains))
 }
 ```
 
