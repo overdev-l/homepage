@@ -15,19 +15,19 @@ interface Post {
   frontmatter: Frontmatter,
   readTime: string
 }
-interface Shici {
+interface shiciResult {
   content: string
   origin: string
   author: string
 }
 interface Iprops {
   posts: Array<Post>
-  shici: Shici
+  shiciResult: shiciResult
 }
-export default function Home({ posts, shici }: Iprops) {
+export default function Home({ posts, shiciResult }: Iprops) {
   return (
     <div className="w-full h-full">
-      <h2 className='font-medium text-sm text-slate-500 font-mono mb-3 dark:text-slate-400 text-center'>{shici.content} -- {shici.author}《{shici.origin}》</h2>
+      <h2 className='font-medium text-sm text-slate-500 font-mono mb-3 dark:text-slate-400 text-center'>{shiciResult.content} -- {shiciResult.author}《{shiciResult.origin}》</h2>
       <section className=' flex flex-col gap-y-[5px] border-t'>
         {
           posts.map(post => (<Article key={post.slug} post={post}/>))
@@ -55,13 +55,21 @@ export async function getServerSideProps() {
       date: dayjs(item.frontmatter.date).format('YYYY-MM-DD')
     },
   }))
-  let url = process.env.NODE_ENV === 'production' ? 'https://overdev/api/shici' : 'http://localhost:3000/api/shici'
-  const result = await fetch(url)
-  const shici = await result.json()
+  let shiciResult = {}
+  try {
+    const response = await fetch('https://v1.jinrishici.com/all.json')
+    shiciResult = await response.json()
+  } catch (error) {
+    shiciResult = {
+      content: '择善从之，不善改之',
+      origin: '论语‧述而',
+      author: '孔子'
+    }
+  }
   return {
     props: {
       posts,
-      shici
+      shiciResult
     }
   }
 }
