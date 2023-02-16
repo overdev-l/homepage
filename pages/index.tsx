@@ -37,7 +37,7 @@ export default function Home({ posts, shici }: Iprops) {
   )
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   const data = postsFileName.map(slug => {
     const content = fs.readFileSync(path.join(postsPath, slug), 'utf-8')
     const { data } = matter(content)
