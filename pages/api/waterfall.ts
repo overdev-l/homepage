@@ -23,3 +23,12 @@ export default function handle(req: NextApiRequest, res: NextApiResponse) {
     })
     res.send(data)
 }
+
+export async function shici(req: NextApiRequest, res: NextApiResponse) {
+    try {
+        const data = await fetch('https://v1.jinrishici.com/all.json')
+        res.send(data.json())
+    } catch (error) {
+        console.log(error)
+    }
+}

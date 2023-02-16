@@ -15,13 +15,19 @@ interface Post {
   frontmatter: Frontmatter,
   readTime: string
 }
+interface Shici {
+  content: string
+  origin: string
+  author: string
+}
 interface Iprops {
   posts: Array<Post>
+  shici: Shici
 }
-export default function Home({ posts }: Iprops) {
+export default function Home({ posts, shici }: Iprops) {
   return (
     <div className="w-full h-full">
-      <h2 className='title text-lg w-full pt-[30px] text-center'>择善从之，不善改之</h2>
+      <h2 className='font-medium text-sm text-slate-500 font-mono mb-3 dark:text-slate-400 text-center'>{shici.content} -- {shici.author}《{shici.origin}》</h2>
       <section className=' flex flex-col gap-y-[5px] border-t'>
         {
           posts.map(post => (<Article key={post.slug} post={post}/>))
@@ -49,9 +55,13 @@ export async function getStaticProps() {
       date: dayjs(item.frontmatter.date).format('YYYY-MM-DD')
     },
   }))
+  let url = process.env.NODE_ENV === 'production' ? 'https://overdev/api/shici' : 'http://localhost:3000/api/shici'
+  const result = await fetch(url)
+  const shici = await result.json()
   return {
     props: {
-      posts
+      posts,
+      shici
     }
   }
 }
