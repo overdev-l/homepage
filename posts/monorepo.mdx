@@ -1,0 +1,72 @@
+---
+title: monorepo工程化实践
+date: 2023-03-30
+description: Monorepo是一种在单个版本控制库中管理多个项目的方法，可简化代码共享和依赖管理，提高开发效率和代码质量。本文记录monorepo的工程化实践
+---
+### 背景
+因当下场景需要快速创建项目，目前参考了`vite`、`astro`等脚手架的工程化实践，记录下本次monorepo工程化实践。废话不多说下面开始👇
+
+### monorepo项目搭建
+有关于什么是`monorepo`这里不过多赘述，有兴趣可以点击[博客](https://semaphoreci.com/blog/what-is-monorepo)查看，我个人推荐使用`pnpm`作为包管理工具，因为`pnpm`的特性可以很好的解决`monorepo`的依赖管理问题，这里不过多赘述，有兴趣可以点击[博客](https://www.pnpm.io/monorepos)查看。
+
+我个人推荐使用`pnpm`创建项目，相关细节请移步[pnpm monorepo](https://pnpm.io/zh/workspaces)查看。
+
+### 初始化项目
+```bash
+mkdir terky
+cd terky
+pnpm init
+```
+> 新建`pnpm-workspace.yaml`文件，配置`packages`目录下的所有包
+```yaml
+packages:
+  - 'packages/*'
+```
+因为这个项目是一个脚手架，所以不仅要有脚手架包，还要有模板包,这是我的项目目录结构
+```plantuml
+├─packages
+│  ├─create-terky
+│  ├─template-react-ts
+│  ├─template-vue3-ts
+│  ├─template-vue3
+│  └─template-vue2
+
+```
+
+### `eslint`
+> 此配置作为基础配置，会被`packages`下的包继承
+- eslint
+`eslint`核心包
+- @typescript-eslint/parser
+`eslint`解析器，用于解析`typescript`代码
+- @typescript-eslint/eslint-plugin
+`eslint`插件，用于检查`typescript`代码
+```bash
+pnpm add -D eslint
+pnpm add -D @typescript-eslint/parser
+pnpm add -D @typescript-eslint/eslint-plugin
+```
+> 新建`.eslintrc.json`文件，配置`eslint`
+```json
+{
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "node": true,
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:node/recommended"
+  ],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2021
+  },
+  "rules": {
+
+  }
+}
+
+```
