@@ -51,14 +51,11 @@ pnpm add @typescript-eslint/eslint-plugin -D -w
 {
   "parser": "@typescript-eslint/parser",
   "env": {
-    "node": true,
-    "browser": true,
     "es6": true
   },
   "extends": [
       "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:node/recommended"
+      "plugin:@typescript-eslint/recommended"
   ],
   "parserOptions": {
     "sourceType": "module",
@@ -68,5 +65,39 @@ pnpm add @typescript-eslint/eslint-plugin -D -w
 
   }
 }
-
 ```
+
+### `commit规范`
+
+首先全局安装 `commitizen`，这样可以在本地使用`cz`或`git cz`替代`git commit`
+```bash
+pnpm add -g commitizen
+```
+目前有很多`commit`工具帮助我们进行规范化`commit`格式，关于`commit`规范你可以点击这里[查看](https://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html)
+推荐使用`cz-git`，官方提供了`commit`规范模版，以及支持`emoji`、中文英文双语，而且官网也是中文描述
+```bash
+pnpm add cz-git -D -w
+```
+具体如何配置，请移步官网文档查看，写的很清楚，可以直接选择喜欢的配置模版直接使用，建议搭配`commitlint`使用。安装完成后向`.commitlintrc.js`添加检测规则
+```json
+{
+  ...
+  extends: ['@commitlint/config-conventional']
+  ...
+}
+```
+添加`scripts`脚本命令
+```json
+{
+  "scripts": {
+    "commitlint": "commitlint --config .commitlintrc.js -e -V"
+  }
+}
+```
+`commitlint`需要搭配`husky`，需要添加commit-msg hooks
+```bash
+pnpm add husky @commitlint/{config-conventional,cli} -D -w
+husky install
+npx husky add .husky/commit-msg 'npm run commitlint'
+```
+
