@@ -100,4 +100,49 @@ pnpm add husky @commitlint/{config-conventional,cli} -D -w
 husky install
 npx husky add .husky/commit-msg 'npm run commitlint'
 ```
+### 创建模版项目
+以上的配置只是为了规范项目的信息及代码格式，既然是脚手架项目那么就需要项目模版，目前规划5种模版项目:
+> 以下项目的打包工具均为`webpack`
+- vue3 + ts
+- vue3 
+- react + ts
+- react
+- vue2
 
+### vue3 + ts 项目创建
+> 因为是模版项目所以不能去共用`monorepo`的依赖，避免使用脚手架创建项目后出现依赖错误
+
+安装依赖`webpack`相关依赖
+```bash
+pnpm add -D webpack webpack-cli webpack-merge webpack-dev-server 
+```
+安装vue相关依赖
+```bash
+pnpm add vue vue-router pinia -S
+pnpm add vue-tsc vue-loader -D
+```
+配置`typescript`
+```bash
+pnpm add typescript -D
+tsc --init
+```
+这里给出我目前采用的`tsconfig.json`的配置
+```json
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "strictNullChecks": false,
+    "paths": { "@/*":["./src/*"] },
+    "allowSyntheticDefaultImports": true,
+    "types": ["element-plus/global", "node"],
+    "skipLibCheck": true,
+    "noImplicitAny": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "test/**/*.test.ts"],
+
+```
+模版的`eslint`与`commitlint`就不再说一遍了
