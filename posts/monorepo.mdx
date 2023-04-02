@@ -1,5 +1,5 @@
 ---
-title: monorepo工程化实践
+title: monorepo工程化实践 - 脚手架开发
 date: 2023-03-30
 description: Monorepo是一种在单个版本控制库中管理多个项目的方法，可简化代码共享和依赖管理，提高开发效率和代码质量。本文记录monorepo的工程化实践
 ---
@@ -26,10 +26,9 @@ packages:
 ```plantuml
 ├─packages
 │  ├─create-terky
-│  ├─template-react-ts
-│  ├─template-vue3-ts
-│  ├─template-vue3
-│  └─template-vue2
+│     ├─template-vue3-ts
+│     ├─template-vue3
+│     ├─src
 
 ```
 
@@ -100,52 +99,264 @@ pnpm add husky @commitlint/{config-conventional,cli} -D -w
 husky install
 npx husky add .husky/commit-msg 'npm run commitlint'
 ```
-### 创建模版项目
-以上的配置只是为了规范项目的信息及代码格式，既然是脚手架项目那么就需要项目模版，目前规划5种模版项目:
-> 以下项目的打包工具均为`webpack`
-- vue3 + ts
-- vue3 
-- react + ts
-- react
-- vue2
+## create-terky
 
-### vue3 + ts 项目创建
-> 因为是模版项目所以不能去共用`monorepo`的依赖，避免使用脚手架创建项目后出现依赖错误
+`terky`是一个现代化的脚手架，通过使用`npm create terky`可以快速从`github`的模版列表中拉取我们所需要的项目基础模版，省去重复的`webpack`配置
+和一起其他的项目配置
 
-安装依赖`webpack`相关依赖
+* `npm create <package>` 是什么?
+
+一般在初始化项目的时候，都会去执行`npm init`，会在当前目录生成一个`package.json`文件，在`init`后面还可以跟一个参数`<initializer>`,
+当增加上这个参数时，`npm`会去查询名为`create-<initializer>`这个包，如果本地存在那么就执行本地缓存，反之则同步远程包到本地执行。使用
+`npm exec`执行`create-<initializer>`包的`bin`下定义的命令`create-<initializer>`，`bin`是在`package.json`中定义的。
+`npm v6`版本给`init`命令增加了一个别名`create`，所以 `init`等于`create`，详细信息可以点击[这里](https://docs.npmjs.com/cli/v9/commands/npm-init)查看
+
+### 实战
+首先需要在本地初始化一个`package.json`，并安装所需依赖
 ```bash
-pnpm add -D webpack webpack-cli webpack-merge webpack-dev-server 
+pnpm init
+
+pnpm add -D typescript
+pnpm add -D unbuild
+pnpm add prompts
+pnpm add ora
+pnpm add kolorist
+pnpm add fs-extra
+pnpm add execa
+pnpm add minimist
 ```
-安装vue相关依赖
-```bash
-pnpm add vue vue-router pinia -S
-pnpm add vue-tsc vue-loader -D
-```
-配置`typescript`
-```bash
-pnpm add typescript -D
-tsc --init
-```
-这里给出我目前采用的`tsconfig.json`的配置
+- typescript 我使用`typescript`编写项目
+- unbuild 打包`typescript`代码
+- prompts 给用户提供交互式选择
+- ora 可以在控制台使用loading动画
+- kolorist 修改控制台中输出的文字的颜色
+- fs-extra 基于`fs`模块更好的文件操作API
+- execa 在`nodejs`中执行命令
+- minimist 解析传入的参数
+
+使用`tsc --init`初始化`tsconfig.json`
+
 ```json
 {
+  "include": ["build.config.ts","src"],
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "outDir": "dist",
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "bundler",
     "strict": true,
-    "jsx": "preserve",
-    "moduleResolution": "node",
-    "strictNullChecks": false,
-    "paths": { "@/*":["./src/*"] },
-    "allowSyntheticDefaultImports": true,
-    "types": ["element-plus/global", "node"],
     "skipLibCheck": true,
-    "noImplicitAny": false
-  },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "test/**/*.test.ts"],
+    "declaration": false,
+    "sourceMap": false,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  }
+}
 
 ```
-模版的`eslint`与`commitlint`就不再说一遍了,只列出依赖。
-```bash
-pnpm add eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-vue eslint-webpack-plugin eslint-plugin-vuefix -D
+创建`build.config.ts`提供`unbuild`打包配置，并在`package.json`中增加命令
+```ts
+import { defineBuildConfig } from 'unbuild'
+export default defineBuildConfig({
+    entries: ['src/index.ts'],
+    clean: true,
+    rollup: {
+        inlineDependencies: true,
+        esbuild: {
+            minify: true,
+        },
+    },
+})
 ```
+```json
+{
+  ...
+  "script": {
+    "build": "unbuild"
+  },
+  ...
+}
+```
+
+新建`index.js`提供程序主入口
+```js
+#!/usr/bin/env node
+import "./dist/index.mjs"
+```
+src目录结构如下
+```
+├─src
+|  ├─index.ts 
+|  ├─utils.ts 
+|  ├─actions 
+|     ├─utils.ts 
+```
+
+- utils.ts
+
+> 在这个文件中需要提供一些工具函数及问答交互，有关[`prompts`](https://github.com/terkelg/prompts)的用法请移步文档查看
+```ts
+import { blue, yellow } from 'kolorist'
+import fs from  'fs'
+// 默认项目名称
+export const defaultDir = 'terky-app'
+// 问答交互
+export const FRAMEWORKS = [
+  {
+    name: 'vue3',
+    display: 'JavaScript',
+    color: yellow,
+    value: 'template-vue3'
+  },
+  {
+    name: 'vue3-ts',
+    display: 'TypeScript',
+    color: blue,
+    value: 'template-vue3-ts'
+  },
+]
+// 判断目录是否存在
+export const isEmpty = (dir: string) => fs.existsSync(dir)
+// 创建项目目录
+export const mkdirSync = (dir: string) => fs.mkdirSync(dir)
+```
+
+- git.ts
+> 在这个函数中其实只做了一件事，那就是将用户所选择的模版下载到本地
+```ts
+import { execa } from 'execa'
+import {Ora} from "ora"
+import fs from 'fs-extra'
+import os from 'os'
+export const createRepo = async (dir: string, template: string, spinner: Ora) => {
+    const filePath = '.git/info/sparse-checkout'
+    const foldersToPull = `/packages/create-terky/${template}/*${os.EOL}`
+    const sourceDir = `${dir}/packages/create-terky/${template}`
+    await execa('git', ['init'], { cwd: dir  })
+    await execa('git', ['remote', 'add', '-f', 'origin', 'git@github.com:overdev-l/terky.git'], { cwd: dir  })
+    await execa('git', ['config', 'core.sparsecheckout', 'true'], { cwd: dir  })
+    spinner.text = '正在拉取模板 | Pulling template...'
+    await fs.writeFileSync(`${dir}/${filePath}`, foldersToPull, { encoding: 'utf-8' })
+    await execa('git', ['pull', 'origin', 'master'], {cwd: dir})
+    await fs.copy(sourceDir, dir, )
+    await execa('rm', ['-rf', '.git'], {cwd: dir})
+    await execa('rm', ['-rf', 'packages'], {cwd: dir})
+ }
+```
+
+- index.ts
+> 这个文件是一个主入口，也是我们打包的入口，执行命令其实就是相当于执行这个文件中的`main`函数
+
+1.首先根据`utils`中定义的问答列表，向用户提问🙋。
+2.根据用户输入和选择的内容判断目录是否存在
+  a.如果存在那么退出程序，提示用户目录已经存在
+  b.不存在目录那么新建目录
+3.执行`git`中所提供`createRepo`函数，初始化目录并拉取模版代码
+```ts
+import { defaultDir, FRAMEWORKS, isEmpty, mkdirSync} from './utils.ts'
+import { createRepo } from './actions/git.ts'
+import { red, reset,  } from 'kolorist'
+import prompts from 'prompts'
+import path from "path"
+import ora from 'ora'
+async function main () {
+  const result = await prompts([
+    {
+      type: 'text',
+      name: 'projectName',
+      message: reset('👉 项目名称 | Project name:'),
+      initial: defaultDir
+    },
+    {
+      type: 'select',
+      name: 'template',
+      message: reset('👉 选择模板 | Select template:'),
+      choices: FRAMEWORKS.map((framework) => ({
+          title: framework.color(framework.name),
+          value: framework.value,
+      }))
+    }
+  ], {
+    onCancel: () => {
+      console.log(red('✖') + '操作被取消 | Operation canceled')
+    }
+  })
+  const spinner = ora('正在创建项目 | Creating project...').start()
+  const { projectName, template } = result
+  const root = path.join(process.cwd(), projectName)
+  if (isEmpty(root)) {
+    console.log(red('✖') + `目录已存在 | Directory already exists: /${projectName}`)
+    ora().fail('创建失败 | Create failed')
+    spinner.stop()
+    return
+  }
+  spinner.text = '正在创建目录 | Creating directory...'
+  await mkdirSync(projectName)
+  await createRepo(root, template, spinner)
+  spinner.succeed('创建成功 | Create success')
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})
+
+```
+
+### 本地测试
+还记得前面所提到`npm create`的原理吗，现在需要向`package.json`中添加`bin`字段
+```json {3-5}
+{
+  ...
+  "bin": {
+    "create-terky": "index.js"
+  },
+  "scripts": {
+    "build": "unbuild"
+  }
+}
+```
+现在我们可以执行`pnpm build`，生成`dist/index.mjs`，因为我们主入口文件需要它
+```js {2}
+#!/usr/bin/env node
+import "./dist/index.mjs"
+```
+
+完成以上步骤后，我们需要在当前目录执行`npm link`，将此包链接到全局就可以直接使用`bin`下定义的命令`create-terky`
+
+
+### 发布
+
+本地测试完成之后就可以发布到`npm`，在发布之前您需要先拥有一个`npm`账号，您可以在这里[注册](https://www.npmjs.com/signup)。如果您已经拥有账号，
+您可以忽略上一步。现在还需要在本地新建一个名为`.npmrc`的文件，并写入内容
+```rc
+registry=https://registry.npmjs.org/
+```
+这个文件可以让我们在当前项目的目录下执行`npm login`时，总是登录到公共的`npm`。这样可以避免您登录到可能正在使用您自己的组织内部的私有`npm`服务。
+
+现在准备工作已经完毕，开始吧
+
+```bash
+npm login
+```
+> 在发布之前请您确保您的`package.json`中的`name`字段在`npm`中是独一无二的，避免与其他模块冲突
+
+```bash
+npm public
+```
+
+如果没有出现`error`提示，那么您就可以登录`npm`，搜索自己的包名了。当然您也可以直接尝试`npm create terky`来使用我所发布的工具。
+
+完成代码可以点击[查看](https://github.com/overdev-l/terky)，您也会有好的想法或者模版，
+您可以提交PR或发送邮件至[`<yz@overdev.cn>`](mailto:yz@overdev.cn)，我会尽快回复您🦀️🦀️。
+
+在下面您可以看到一些对您有用的链接👇
+
+- [`monorepo`是什么？](https://semaphoreci.com/blog/what-is-monorepo)
+- [`workspace`是什么？](https://pnpm.io/zh/workspaces)
+- [`commit message`是什么？](https://www.ruanyifeng.com/blog/2016/01/commit_message_change_log.html)
+- [`prompts`是什么？](https://chinabigpan.github.io/prompts_docs_cn/)
+- [`.npmrc`是什么？](https://docs.npmjs.com/cli/v7/configuring-npm/npmrc)
+- [`npm link`是什么？](https://docs.npmjs.com/cli/v9/commands/npm-link?v=true)
