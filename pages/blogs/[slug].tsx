@@ -12,6 +12,7 @@ import BlogContent from '../../components/BlogContent/BlogContent'
 import rehypeSlug from 'rehype-slug'
 import rehypePrism from 'rehype-prism-plus'
 import rehypePrismDiff from 'rehype-prism-diff'
+import toc from '@jsdevtools/rehype-toc'
 type Frontmatter = {
     title: string
     date: Date
@@ -47,7 +48,8 @@ export const getStaticProps: GetStaticProps = async ({ params }: any) => {
             rehypePlugins: [
               rehypeSlug,
               rehypePrismDiff,
-              [rehypePrism, { ignoreMissing: true }]
+              [rehypePrism, { ignoreMissing: true }],
+              toc
             ],
             remarkPlugins: [
             ]
