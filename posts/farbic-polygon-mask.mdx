@@ -4,5 +4,23 @@ date: 2025-03-12
 description: 本文详细介绍了如何在数据标注平台中基于Fabric.js实现高效多边形mask标注功能，包含完整代码示例、性能优化技巧和用户体验设计，助力AI训练数据精准标注。
 ---
 
- <h4>先看Demo👇：</h4>
+### 先看Demo👇：
 <FabricPolygonMask/>
+
+### 整体架构思路
+
+技术实现以插件方式引入只需要传递`fabric.Canvas`实例即可
+```ts
+new PolygonUtil(fabricCanvas.current)
+```
+
+插件以View、Stash、Theme、以及Polybool组成，对外暴露以上插件的整合，但是不保存任何状态，只做聚合能力。
+
+View模块维护了创建时的临时多边形的渲染和提交创建完成的多边形能力。
+用户在新增多边形状态下按下空格键会执行commit操作，将暂存与View中的临时多边形数据提交至Stash中。
+在commit中会根据当前多边形是否为覆盖模式来决定是否与相交的图形进行裁剪
+
+---
+*参考资源：*
+- [Fabric.js官方文档](https://fabricjs.com)
+- [Polybool.js 多边形布尔运算库](https://github.com/velipso/polybool)
