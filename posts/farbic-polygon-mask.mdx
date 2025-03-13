@@ -4,23 +4,81 @@ date: 2025-03-12
 description: 本文详细介绍了如何在数据标注平台中基于Fabric.js实现高效多边形mask标注功能，包含完整代码示例、性能优化技巧和用户体验设计，助力AI训练数据精准标注。
 ---
 
-### 先看Demo👇：
+*先看Demo👇：*
 <FabricPolygonMask/>
 
-### 整体架构思路
+## 核心功能
+1. **多边形绘制**
+   - 鼠标点击绘制顶点
+   - 实时预览绘制路径
+   - 空格键提交多边形
+   - 支持覆盖模式/合并模式切换
 
+2. **多边形编辑**
+   - 控制点拖拽修改形状
+   - 自动维护多边形拓扑关系
+   - 支持多图层叠加渲染
+
+3. **高级特性**
+   - 多边形布尔运算合并
+
+---
 技术实现以插件方式引入只需要传递`fabric.Canvas`实例即可
 ```ts
 new PolygonUtil(fabricCanvas.current)
 ```
+`polygonUtil`作为核心工具插件，协调视图工具和存储管理。
 
-插件以View、Stash、Theme、以及Polybool组成，对外暴露以上插件的整合，但是不保存任何状态，只做聚合能力。
+核心工具插件以View、Stash、Theme、以及Polybool组成，对外暴露以上插件的整合，但是不保存任何状态，只做聚合能力。
 
-View模块维护了创建时的临时多边形的渲染和提交创建完成的多边形能力。
-用户在新增多边形状态下按下空格键会执行commit操作，将暂存与View中的临时多边形数据提交至Stash中。
-在commit中会根据当前多边形是否为覆盖模式来决定是否与相交的图形进行裁剪
+View模块维护了创建时的临时多边形的渲染和提交创建完成的多边形能力。下面代码描述了以`Fabric`事件驱动的实时更新临时多边形的逻辑
 
+![](https://cdn.overdev.cn/Untitled.mp4)
+
+```ts
+export class ViewTool {
+    ...
+    
+    onMouseDown(e: TPointerEventInfo<TPointerEvent>) {
+        if (!this.isEnable) return;
+        const pointer = this.polygonUtil
+                            .canvas
+                            .getScenePoint(e.e);
+        this.pointers.push(pointer);
+        this.render();
+    }
+
+    onMouseMove(e: TPointerEventInfo<TPointerEvent>) {
+        if (
+            !this.isEnable ||
+            this.pointers.length === 0
+            ) return;
+        this.lastPointer = this.polygonUtil
+                               .canvas
+                               .getScenePoint(e.e);
+        this.render();
+    }
+
+    private render() {
+        this.clearPreview();
+        this.polygonView = new Polygon(
+            [...this.pointers, this.lastPointer],
+            {
+            fill: this.polygonUtil
+                      .theme
+                      .getPolygonViewTheme().fill,
+            stroke: this.polygonUtil
+                        .theme
+                        .getPolygonViewTheme().stroke
+        });
+        this.polygonView.set({ name: 'view-polygon' });
+        this.polygonUtil.canvas.add(this.polygonView);
+    }
+}
+```
 ---
+
+
 *参考资源：*
 - [Fabric.js官方文档](https://fabricjs.com)
 - [Polybool.js 多边形布尔运算库](https://github.com/velipso/polybool)
