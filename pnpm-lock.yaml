@@ -72,8 +72,8 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(next@13.0.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       pinyin:
-        specifier: ^3.0.0-alpha.5
-        version: 3.0.0-alpha.5
+        specifier: 3.0.0-alpha.4
+        version: 3.0.0-alpha.4
       plyr:
         specifier: ^3.7.8
         version: 3.7.8
@@ -2200,8 +2200,8 @@ packages:
     resolution: {integrity: sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==}
     engines: {node: '>=0.10.0'}
 
-  pinyin@3.0.0-alpha.5:
-    resolution: {integrity: sha512-Sc8+Ch8uxZsVO0zvzHxvy24fEIixSl7V4kZoX4ThSyQ1BI0H8jIAqf0kxT8WMCX2xEHr1CYslKGDgSE4yj71hg==}
+  pinyin@3.0.0-alpha.4:
+    resolution: {integrity: sha512-KuuztSUK/91r8/yytH0KPhpehPAj6QzNLOUTagb1M3EviX9HvOtz5g2OghY45e7ls3W3dsdghVZ1csw7rhqz5g==}
     hasBin: true
 
   pirates@4.0.6:
@@ -3608,7 +3608,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.22.6
       cosmiconfig: 6.0.0
-      resolve: 1.22.2
+      resolve: 1.22.10
     optional: true
 
   babel-plugin-preval@4.0.0:
@@ -5451,7 +5451,7 @@ snapshots:
 
   pify@2.3.0: {}
 
-  pinyin@3.0.0-alpha.5:
+  pinyin@3.0.0-alpha.4:
     dependencies:
       commander: 1.1.1
     optionalDependencies:
