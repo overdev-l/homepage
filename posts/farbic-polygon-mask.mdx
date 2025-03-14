@@ -31,10 +31,18 @@ new PolygonUtil(fabricCanvas.current)
 
 核心工具插件以View、Stash、Theme、以及Polybool组成，对外暴露以上插件的整合，但是不保存任何状态，只做聚合能力。
 
+
+### View👀
+
+<PlyrVideo src="https://cdn.overdev.cn/View.mp4" id="view-video" />
+
+
 View模块维护了创建时的临时多边形的渲染和提交创建完成的多边形能力。下面代码描述了以`Fabric`事件驱动的实时更新临时多边形的逻辑
+- onMouseDown(e): 记录鼠标点击的位置，并将其存入 pointers 数组。
+- onMouseMove(e): 当鼠标移动时，如果已有点击点，则更新 lastPointer，用于动态预览多边形。
+- render(): 清除旧的预览后，使用 pointers 和 lastPointer 生成新的 Polygon 并渲染到画布上。
 
-![](https://cdn.overdev.cn/Untitled.mp4)
-
+整体作用是根据用户的鼠标点击和移动动态绘制多边形预览。
 ```ts
 export class ViewTool {
     ...
@@ -76,6 +84,196 @@ export class ViewTool {
     }
 }
 ```
+
+### Stash💾
+
+从View中的视频可以看到，当用户点击鼠标绘制多边形时，
+会实时更新多边形的预览，当用户按下空格键时，会提交多边形，并创建一个Polygon对象，然后将其存储到Stash中。
+
+Stash模块负责存储和管理多边形数据，并负责管理已经提交的多边型的修改。
+
+<PlyrVideo src="https://cdn.overdev.cn/Stash.mp4" id="stash-video" />
+
+Stash 类用于管理多边形的创建、渲染和交互操作，依赖 PolygonUtil 进行绘制，并监听 Fabric.js 画布上的对象移动事件，以动态更新多边形的顶点位置。
+1. 初始化 (constructor)
+- 通过 PolygonUtil 管理 Fabric.js 画布。
+- 解析 defaultPolygonPointerJson 生成初始多边形，并调用 addPolygon 添加到 polygons 列表。
+- 渲染所有多边形及其控制点。
+- 监听 object:moving 事件，实现交互功能。
+2. 对象移动监听 (onObjectMoving)
+- 监听 Fabric.js 画布中对象移动事件。
+- 当控制点移动时，更新其对应多边形的 points 数据。
+- 触发 Fabric.js 重新渲染，保证界面同步更新。
+3. 多边形管理
+- addPolygon(polygon: StashPolygon): 添加多边形，若 isCover 为 true 直接存入 polygons，否则合并至已有多边形（polygonUnion）。
+- removeAllPolygonByCanvas(): 移除 Fabric.js 画布上所有已存储的多边形及其控制点。
+4. 多边形渲染
+- renderAllPolygon(): 遍历 polygons 数组，在 Fabric.js 画布上添加对应的 Polygon 对象。
+- renderAllControl(): 为每个多边形的顶点添加可拖动的 Circle 控制点，以支持交互调整。
+- render(): 清空画布上的多边形和控制点，并重新渲染所有内容。
+
+```ts
+export class Stash {
+    public polygons: StashPolygon[] = [];
+
+    constructor(public polygonUtil: PolygonUtil) {
+        this.addPolygon({
+            points: JSON.parse(defaultPolygonPointerJson).map(({ x, y }) => new Point(x, y)),
+            theme: defaultPolygonTheme,
+            controlTheme: defaultControlTheme,
+            id: nanoid(),
+            isCover: false,
+        });
+        this.render();
+        this.polygonUtil.canvas.on('object:moving', this.onObjectMoving.bind(this));
+    }
+
+    onObjectMoving(e: BasicTransformEvent<TPointerEvent> & { target: FabricObject }) {
+        const { target } = e;
+        const polygonId = target.get('polygonId');
+        const pointerIndex = target.get('pointerIndex');
+        const polygonElement = this.polygonUtil.canvas.getObjects().find(item => item.get('id') === polygonId);
+        const polygon = this.polygons.find(item => item.id === polygonId);
+
+        if (polygonId === undefined || pointerIndex === undefined || !polygonElement || !polygon) return;
+
+        polygonElement.get('points')[pointerIndex] = target.getCenterPoint();
+        polygonElement.set('points', polygonElement.get('points'));
+        this.polygonUtil.canvas.renderAll();
+    }
+
+    addPolygon(polygon: StashPolygon) {
+        polygon.isCover ? this.polygons.push(polygon) : polygonUnion.call(this, polygon);
+    }
+
+    removeAllPolygonByCanvas() {
+        const ids = new Set(this.polygons.map(p => p.id));
+        this.polygonUtil.canvas.remove(
+            ...this.polygonUtil.canvas.getObjects().filter(obj => ids.has(obj.get('id') || obj.get('polygonId')))
+        );
+    }
+
+    renderAllPolygon() {
+        this.polygons.forEach(({ id, points, theme }) => {
+            this.polygonUtil.canvas.add(new Polygon(points, {
+                ...theme, selectable: false, hasBorders: false, hasControls: false, objectCaching: false, id
+            }));
+        });
+    }
+
+    renderAllControl() {
+        this.polygons.forEach(({ id, points, controlTheme }) => {
+            points.forEach((point, index) => {
+                this.polygonUtil.canvas.add(new Circle({
+                    ...controlTheme, originX: 'center', originY: 'center', radius: 3, left: point.x, top: point.y,
+                    hasControls: false, hasBorders: false, polygonId: id, pointerIndex: index
+                }));
+            });
+        });
+    }
+
+    render() {
+        this.removeAllPolygonByCanvas();
+        this.renderAllPolygon();
+        this.renderAllControl();
+    }
+}
+
+```
+
+### Polybool🔄
+
+Polybool 类用于处理多边形的布尔运算，包括合并、相交等操作。
+
+<PlyrVideo src="https://cdn.overdev.cn/Poly.mp4" id="polybool-video" />
+
+当用户将View中的多边形提交到Stash中时，会检测提交的多边型是否与Stash中的多边形存在重叠，如果存在重叠，则进行布尔运算合并。
+
+```ts
+/**
+ * 创建多边形
+ * @param pointers 
+ * @returns 
+ */
+export function createShape(pointers: Array<Point>) {
+    const newShape = polybool.shape().beginPath()
+    pointers.forEach((point, index) => {
+        if (index === 0) {
+            newShape.moveTo(point.x, point.y)
+        } else {
+            newShape.lineTo(point.x, point.y)
+        }
+    })
+    newShape.closePath()
+    return newShape
+}
+
+
+export function createExistingShape(polygons: StashPolygon[]) {
+    const existingShape = polybool.shape().beginPath()
+    polygons.forEach(polygon => {
+        polygon.points.forEach((point, index) => {
+            if (index === 0) {
+                existingShape.moveTo(point.x, point.y)
+            } else {
+                existingShape.lineTo(point.x, point.y)
+            }
+        })
+        existingShape.closePath()
+    })
+    return existingShape
+}
+
+
+/**
+ * 预先处理多边形
+ * @param this 
+ * @param newPointers 
+ */
+export function polygonUnion(this:Stash, newPointers: StashPolygon) {
+    const pointers = this.polygons
+    const newPolygon = polygonUnionHandler(pointers, newPointers)
+    this.polygons = [...pointers, {
+        ...newPointers,
+        points: newPolygon,
+    }]
+}
+
+export function polygonUnionHandler(pointers: StashPolygon[], newPointers: StashPolygon) {
+    const newShape = createShape(newPointers.points)
+
+    if (pointers.length === 0) {
+        const receiver = new Receiver()
+        const resultPaths = newShape.output(receiver).done()
+        return resultPaths[0]
+    }
+
+    const existingShape = createExistingShape(pointers)
+
+    const intersection = existingShape.combine(newShape).intersect()
+    
+    const result = newShape.combine(intersection).difference()
+
+    const receiver = new Receiver()
+    const resultPaths = result.output(receiver).done()
+    return resultPaths[0]
+}
+```
+
+- 创建多边形（createShape、createExistingShape）。
+- 执行布尔运算（polygonUnionHandler）。
+- 合并到已有多边形列表（polygonUnion）。
+
+维护一个多边形列表，并允许动态合并新多边形，避免重叠区域。
+依赖 polybool 进行布尔运算，核心思路是先计算交集，再去掉交集部分，避免重复合并，从而实现合并不重叠的新形状。
+
+
+> 对于在修改多边型时执行布尔运算时，需要根据调整后的多边型与已经存在的多边型进行布尔运算，从而实现合并不重叠的新形状。
+
+最后看下整体设计架构图：
+
+![多边型工具架构图](https://cdn.overdev.cn/polygonUtil.png)
+
 ---
 
 
