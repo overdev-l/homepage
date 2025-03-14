@@ -34,7 +34,7 @@ export default function PlyrVideo({ src, id }: PlyrVideoProps) {
                 plyrInstance.destroy();
             }
         };
-    }, []);
+    }, [id]);
 
     return (
         <div className="w-full h-fit">
